@@ -1,5 +1,7 @@
 # Build Progress
 
+Steps 1–3 were built with Codex 5.6. Steps 4 onward were built with Claude Sonnet 5.
+
 ## Step 1 — Project scaffold and clients ✓
 
 - Created a Next.js 14 App Router project with TypeScript and Tailwind CSS.
