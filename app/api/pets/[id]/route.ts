@@ -1,3 +1,4 @@
+import { indexProfileChunks } from "@/lib/indexing";
 import { petFormSchema } from "@/lib/pet-validation";
 import { mapPetRecord } from "@/lib/pets";
 import { createAuthServerClient } from "@/lib/supabase/auth-server";
@@ -73,6 +74,9 @@ export async function PATCH(request: Request, { params }: Context) {
     );
     if (vaccinationError) return error(vaccinationError.message, 500);
   }
+
+  await indexProfileChunks(supabase, params.id, values);
+
   return NextResponse.json({ ok: true });
 }
 

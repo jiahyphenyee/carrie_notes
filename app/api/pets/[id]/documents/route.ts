@@ -1,5 +1,6 @@
 import { extractDocumentText } from "@/lib/document-extraction";
 import { DOCUMENT_TYPES } from "@/lib/document-types";
+import { indexDocumentChunks } from "@/lib/indexing";
 import { createAuthServerClient } from "@/lib/supabase/auth-server";
 import { NextResponse } from "next/server";
 
@@ -71,6 +72,8 @@ export async function POST(request: Request, { params }: Context) {
     await supabase.storage.from(BUCKET).remove([storagePath]).catch(() => undefined);
     return apiError(insertError.message, 500);
   }
+
+  if (extractedText) await indexDocumentChunks(supabase, params.id, file.name, extractedText);
 
   return NextResponse.json({ document: data }, { status: 201 });
 }

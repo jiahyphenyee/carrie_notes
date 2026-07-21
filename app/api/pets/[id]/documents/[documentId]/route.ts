@@ -11,7 +11,7 @@ export async function DELETE(_: Request, { params }: Context) {
 
   const { data: document, error: fetchError } = await supabase
     .from("documents")
-    .select("storage_path")
+    .select("storage_path, file_name")
     .eq("id", params.documentId)
     .eq("pet_id", params.id)
     .single();
@@ -25,5 +25,6 @@ export async function DELETE(_: Request, { params }: Context) {
   if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 });
 
   await supabase.storage.from(BUCKET).remove([document.storage_path]).catch(() => undefined);
+  await supabase.from("doc_chunks").delete().eq("pet_id", params.id).eq("source_type", "document").eq("source_label", document.file_name);
   return new NextResponse(null, { status: 204 });
 }

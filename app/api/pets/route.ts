@@ -1,3 +1,4 @@
+import { indexProfileChunks } from "@/lib/indexing";
 import { petFormSchema } from "@/lib/pet-validation";
 import { createAuthServerClient } from "@/lib/supabase/auth-server";
 import { NextResponse } from "next/server";
@@ -65,6 +66,8 @@ export async function POST(request: Request) {
     );
     if (vaccinationError) return apiError(vaccinationError.message, 500);
   }
+
+  await indexProfileChunks(supabase, pet.id, values);
 
   return NextResponse.json({ id: pet.id }, { status: 201 });
 }

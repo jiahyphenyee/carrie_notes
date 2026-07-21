@@ -46,4 +46,6 @@ Text notes, voice notes, Quick Fill documents, and the optional vaccination-docu
 
 ## RAG index
 
-`doc_chunks.embedding` is `vector(1536)` and has an IVFFlat cosine-similarity index. It is reserved for Step 6.
+`doc_chunks.embedding` is `vector(1536)` and has an IVFFlat cosine-similarity index, populated by `lib/indexing.ts` from `text-embedding-3-small` (1536 dims, matching the column exactly). `doc_chunks` had RLS enabled since Step 2 but no owner-scoped policy until Step 6 added one (`supabase/sql/006_embeddings_setup.sql`), same gap as `documents` before Step 5.
+
+Caregiver-facing retrieval goes through `match_pet_chunks(p_share_token text, p_query_embedding vector(1536), p_match_count int)`, a `SECURITY DEFINER` function in the same file, keyed on `share_token` like `get_shared_pet` rather than a raw `pet_id`.

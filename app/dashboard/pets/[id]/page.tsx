@@ -14,6 +14,8 @@ export default function PetDetailPage() {
   const router = useRouter();
   const [pet, setPet] = useState<PetRecord | null>(null);
   const [error, setError] = useState("");
+  const [reindexing, setReindexing] = useState(false);
+  const [reindexStatus, setReindexStatus] = useState("");
 
   useEffect(() => {
     fetch(`/api/pets/${params.id}`)
@@ -30,6 +32,20 @@ export default function PetDetailPage() {
     const response = await fetch(`/api/pets/${params.id}`, { method: "DELETE" });
     if (response.ok) router.replace("/dashboard");
     else setError("Could not delete this profile.");
+  }
+
+  async function reindex() {
+    setReindexing(true);
+    setReindexStatus("");
+    try {
+      const response = await fetch(`/api/pets/${params.id}/reindex`, { method: "POST" });
+      if (!response.ok) throw new Error();
+      setReindexStatus("Carrie is up to date with the latest profile and documents.");
+    } catch {
+      setReindexStatus("Could not update Carrie's answers right now.");
+    } finally {
+      setReindexing(false);
+    }
   }
 
   if (error) {
@@ -59,8 +75,11 @@ export default function PetDetailPage() {
             <p className="mt-1 text-stone-600">{[pet.breed, pet.age].filter(Boolean).join(" · ") || "Details ready when you are."}</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <DocumentLibrary petId={pet.id} />
+          <Button type="button" variant="ghost" disabled={reindexing} onClick={reindex}>
+            {reindexing ? "Updating Carrie…" : "Update Carrie's answers"}
+          </Button>
           <Link href={`/dashboard/pets/${pet.id}/edit`}>
             <Button>Edit profile</Button>
           </Link>
@@ -69,6 +88,7 @@ export default function PetDetailPage() {
           </Button>
         </div>
       </div>
+      {reindexStatus && <p className="mb-6 text-sm text-stone-500">{reindexStatus}</p>}
 
       <div className="space-y-4">
         <ShareLinkCard shareToken={pet.share_token} />

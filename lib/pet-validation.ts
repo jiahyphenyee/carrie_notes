@@ -45,8 +45,8 @@ export const petFormSchema = z.object({
       z.object({
         id: z.string().uuid().optional(),
         vaccine_name: z.string().trim().min(1, "Vaccine name is required.").max(200),
-        date_administered: z.string().nullable().optional(),
-        expiry_date: z.string().nullable().optional(),
+        date_administered: z.string().nullable().optional().default(null),
+        expiry_date: z.string().nullable().optional().default(null),
         vet_name: text,
         notes: text,
       }),
