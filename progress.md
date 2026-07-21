@@ -29,9 +29,13 @@
 - Added authenticated pet and vaccination API routes with server-side Zod validation.
 - Verified `npm run lint` and `npm run build`.
 
-## Step 4 — Caregiver share view
+## Step 4 — Caregiver share view ✓
 
-Pending approval. This step will add a read-only `/care/[shareToken]` experience and the constrained public database access it needs.
+- Added `get_shared_pet(p_share_token text)`, a `SECURITY DEFINER` Postgres function (`supabase/sql/004_caregiver_share_function.sql`) that returns one pet's profile, care details, and vaccinations by `share_token`, excluding `owner_id` and the token itself. Granted `EXECUTE` to `anon`/`authenticated` only — no public RLS `SELECT` policies were added.
+- Added an anon-key `createPublicClient` helper (`lib/supabase/public-server.ts`) for unauthenticated reads, used only to call the RPC above.
+- Added `GET /api/care/[shareToken]`, which calls the RPC and reuses the existing `mapPetRecord` mapper.
+- Built the read-only `/care/[shareToken]` caregiver page, reusing `PetProfileView` with edit/delete actions and the share-link card removed, plus a friendly not-found state for invalid or revoked tokens.
+- Verified `npm run lint` and `npm run build`.
 
 ## Remaining steps
 
