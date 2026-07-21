@@ -58,9 +58,16 @@
 - Verified `npm run lint`, `npm run build`, and retrieval/answer accuracy end-to-end: both `match_pet_chunks` and `/ask` are anon-callable, so this was scripted directly via `curl` against Mochi's real profile (no browser session needed). Confirmed correct answers with accurate, non-hallucinated sources for direct questions, correct "not covered" handling for an off-profile question and an invalid share token, and — prompted by a question about whether keyword tagging per section would meaningfully help retrieval — tested five paraphrased questions using vocabulary that deliberately didn't match the stored text (e.g. "shot" vs "vaccine", "dinner" vs "meals"). All five still retrieved the correct section with a clear margin, showing `text-embedding-3-small` already generalizes synonyms well at this corpus size; tagging was deferred as a low-priority polish rather than a needed fix.
 - Follow-up browser testing (uploading a new document and saving a profile edit without manually reindexing, to prove the automatic indexing on those write paths — not just the manual reindex button — actually fires) surfaced a real answer-reliability bug: `/ask` retrieved the correct chunk (a "swimming" mention inside a longer "Likes" list) but the model inconsistently claimed the context didn't cover it — 1 of 3 tries wrong. Fixed by tightening `answerInstructions` to require reading every chunk fully before concluding something is missing, explicitly calling out short facts embedded in longer lists, and adding `temperature: 0.1` for consistency; retested 5/5 correct afterward, with the "not covered" and invalid-token regression cases still passing.
 
+## Step 7 — AI chat with source citations and unavailable-information handling ✓
+
+- Added owner-scoped `SELECT`-only RLS on `chat_sessions`/`chat_messages` (same "enabled but no policy" gap as every prior table) and `send_chat_message(share_token, session_id, caregiver_label, role, content)`, a `SECURITY DEFINER` function keyed on `share_token` (same pattern as `get_shared_pet`/`match_pet_chunks`) that resolves or creates the session and inserts one message, in `supabase/sql/007_chat_history.sql`.
+- Extended `POST /api/care/[shareToken]/ask` to accept `session_id`/`caregiver_label` and log both the caregiver's question and Carrie's answer via `send_chat_message`, best-effort, returning `session_id` so the client can continue the same conversation.
+- Added `components/care-chat.tsx`: the actual chat UI on `/care/[shareToken]`, above the read-only profile view — message bubbles, source-citation tags under each answer, `session_id` persisted in `localStorage` so a page refresh continues the conversation, and an optional one-time "Your name" field.
+- Added owner-authenticated `GET /api/pets/[id]/chat-sessions` and `components/chat-history.tsx` (same button-opens-modal pattern as `document-library.tsx`) so owners can review past caregiver conversations, wired into the pet detail page's header actions.
+- Verified `npm run lint` and `npm run build`.
+
 ## Remaining steps
 
-7. AI chat with source citations and unavailable-information handling
 8. UX polish
 9. Vercel deployment
 10. Demo preparation

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { ChatHistory } from "@/components/chat-history";
 import { DocumentLibrary } from "@/components/document-library";
 import { PetProfileView } from "@/components/pet-profile-view";
 import { ShareLinkCard } from "@/components/share-link-card";
@@ -77,6 +78,7 @@ export default function PetDetailPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <DocumentLibrary petId={pet.id} />
+          <ChatHistory petId={pet.id} />
           <Button type="button" variant="ghost" disabled={reindexing} onClick={reindex}>
             {reindexing ? "Updating Carrie…" : "Update Carrie's answers"}
           </Button>

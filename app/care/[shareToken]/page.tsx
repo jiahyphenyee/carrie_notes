@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { CareChat } from "@/components/care-chat";
 import { PetProfileView } from "@/components/pet-profile-view";
 import type { PetRecord } from "@/lib/pets";
 
@@ -56,7 +57,10 @@ export default function CareSharePage() {
         </div>
       </div>
 
-      <PetProfileView pet={pet} />
+      <div className="space-y-4">
+        <CareChat shareToken={params.shareToken} petName={pet.name} />
+        <PetProfileView pet={pet} />
+      </div>
     </main>
   );
 }

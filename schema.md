@@ -41,7 +41,7 @@ Text notes, voice notes, Quick Fill documents, and the optional vaccination-docu
 
 - Row Level Security is enabled on all application tables.
 - Signed-in owners can manage only records attached to their own pets. The `documents` table and `pet-documents` bucket did not actually have owner-scoped policies until Step 5 added them (`supabase/sql/005_document_library_policies.sql`); Step 2's progress notes claiming this was already configured were inaccurate for these two.
-- Owners can view, but cannot directly manage through RLS, caregiver chat history.
+- Owners can view, but cannot directly manage through RLS, caregiver chat history: `chat_sessions`/`chat_messages` had RLS enabled since Step 2 but no policy (same gap as every other table) until Step 7 added owner-scoped `SELECT`-only policies (`supabase/sql/007_chat_history.sql`). Caregivers write to these tables only through `send_chat_message(p_share_token text, p_session_id uuid, p_caregiver_label text, p_role text, p_content text)`, a `SECURITY DEFINER` function in the same file, keyed on `share_token` like `get_shared_pet`/`match_pet_chunks` — there is no direct anon write policy.
 - Caregiver access is implemented through `get_shared_pet(p_share_token text)`, a narrowly scoped `SECURITY DEFINER` function keyed on `pets.share_token` (`supabase/sql/004_caregiver_share_function.sql`), rather than broad public RLS policies. It is callable by the `anon` role and returns only the matching pet's profile, care details, and vaccinations — never `owner_id` or the token itself.
 
 ## RAG index
