@@ -13,7 +13,7 @@ const FALLBACK_ANSWER = "I don't have that information in this pet's profile or 
 // source, not noise (e.g. "Meals" surfacing for a vaccine question).
 const RELATIVE_SIMILARITY_FLOOR = 0.6;
 
-const answerInstructions = `You are answering a caregiver's question about a pet, using only the provided context chunks from the owner's care profile and documents. Answer clearly and directly in a sentence or two. If the context does not contain the answer, say so plainly instead of guessing -- especially for anything medical, emergency, or safety related. Never invent names, dosages, dates, or contact details that are not present in the context.`;
+const answerInstructions = `You are answering a caregiver's question about a pet, using only the provided context chunks from the owner's care profile and documents. Read every chunk fully before deciding whether the answer is present -- the answer is often a short phrase inside a longer chunk (e.g. one item in a comma-separated "Likes" list), not always its own dedicated chunk. Answer clearly and directly in a sentence or two when the context supports it. Only say the context doesn't cover something after checking all chunks; don't hedge or claim information is missing when it is actually present. Be extra careful with anything medical, emergency, or safety related: never invent names, dosages, dates, or contact details that are not present in the context, and if a document chunk appears to be about a different, unnamed pet, treat it as unreliable background rather than a reason to doubt a clearly stated profile fact.`;
 
 type Chunk = { source_type: string; source_label: string; content: string; similarity: number };
 type Context = { params: { shareToken: string } };
@@ -45,6 +45,7 @@ export async function POST(request: Request, { params }: Context) {
     model: "gpt-4.1-mini",
     instructions: answerInstructions,
     input: `Context:\n${context}\n\nQuestion: ${question}`,
+    temperature: 0.1,
   });
 
   const sources = Array.from(
