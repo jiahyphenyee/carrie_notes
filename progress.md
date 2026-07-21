@@ -37,9 +37,18 @@
 - Built the read-only `/care/[shareToken]` caregiver page, reusing `PetProfileView` with edit/delete actions and the share-link card removed, plus a friendly not-found state for invalid or revoked tokens.
 - Verified `npm run lint` and `npm run build`.
 
+## Step 5 — Document upload and text extraction ✓
+
+- Added a permanent per-pet document library, separate from Step 3's ephemeral Quick Fill: owners can upload vet records, care instructions, or other files that stay attached to the profile for the later RAG workflow (Steps 6–7).
+- Added `lib/document-extraction.ts`: plain-text files are decoded directly; PDFs, images, and Office docs are extracted via the same OpenAI Files + Responses pattern as `app/api/extract/route.ts`, but requesting verbatim text instead of structured fields. Extraction is best-effort — a failure still lets the document save with empty `extracted_text`.
+- Added owner-authenticated `GET`/`POST /api/pets/[id]/documents`, `DELETE /api/pets/[id]/documents/[documentId]`, and a signed-URL `GET .../documents/[documentId]/download`.
+- Discovered Step 2 had *not* actually finished RLS for this table/bucket: `documents` and the `pet-documents` bucket had no owner-scoped policies yet. Added them in `supabase/sql/005_document_library_policies.sql` (owner-authenticated inserts were failing with a bare RLS violation until this ran, then failing again from a self-referencing-column bug in the storage policy — fixed by qualifying `storage.objects.name` explicitly, since the correlated `pets` subquery otherwise shadowed it with `pets.name`).
+- Discovered `documents.document_type` has a check constraint (undocumented, not visible via schema introspection) restricting it to a fixed set. Found the allowed values by probing with the service-role key: `vet_report`, `medical_history`, `prescription`, `insurance`, `other` — captured in `lib/document-types.ts` and used to drive a select dropdown instead of a free-text label.
+- Added `components/document-library.tsx`: a compact "Upload any document" button in the pet detail page's header actions (next to Edit/Delete) that opens a modal with the type dropdown, file input, upload confirmation, and the existing document list (view/delete) — kept off the main profile layout by request, and not exposed on the caregiver `/care/[shareToken]` view.
+- Verified `npm run lint`, `npm run build`, and an end-to-end manual upload of both a plain-text and a PDF document.
+
 ## Remaining steps
 
-5. Document upload and text extraction
 6. Embeddings and pgvector similarity search
 7. AI chat with source citations and unavailable-information handling
 8. UX polish

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { DocumentLibrary } from "@/components/document-library";
 import { PetProfileView } from "@/components/pet-profile-view";
 import { ShareLinkCard } from "@/components/share-link-card";
 import { Button } from "@/components/ui";
@@ -59,6 +60,7 @@ export default function PetDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <DocumentLibrary petId={pet.id} />
           <Link href={`/dashboard/pets/${pet.id}/edit`}>
             <Button>Edit profile</Button>
           </Link>

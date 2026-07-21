@@ -31,6 +31,8 @@ The database schema was supplied and applied by the project owner in Step 2. App
 
 `care_details.emergency` stores `{ contacts, instructions }`.
 
+`documents.document_type` has a check constraint (not visible via schema introspection — found by probing) restricting it to `vet_report`, `medical_history`, `prescription`, `insurance`, or `other`. See `lib/document-types.ts`.
+
 ## Temporary extraction inputs
 
 Text notes, voice notes, Quick Fill documents, and the optional vaccination-document form input are processing-only aids in Step 3. They do not create `documents` rows, upload to `pet-documents`, or alter the schema. Once the owner reviews and saves, only the resulting structured care fields and vaccination records are persisted.
@@ -38,7 +40,7 @@ Text notes, voice notes, Quick Fill documents, and the optional vaccination-docu
 ## Access model
 
 - Row Level Security is enabled on all application tables.
-- Signed-in owners can manage only records attached to their own pets.
+- Signed-in owners can manage only records attached to their own pets. The `documents` table and `pet-documents` bucket did not actually have owner-scoped policies until Step 5 added them (`supabase/sql/005_document_library_policies.sql`); Step 2's progress notes claiming this was already configured were inaccurate for these two.
 - Owners can view, but cannot directly manage through RLS, caregiver chat history.
 - Caregiver access is implemented through `get_shared_pet(p_share_token text)`, a narrowly scoped `SECURITY DEFINER` function keyed on `pets.share_token` (`supabase/sql/004_caregiver_share_function.sql`), rather than broad public RLS policies. It is callable by the `anon` role and returns only the matching pet's profile, care details, and vaccinations — never `owner_id` or the token itself.
 
