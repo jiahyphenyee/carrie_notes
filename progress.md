@@ -78,6 +78,11 @@
 - Follow-up feedback after visual verification: Documents' view/delete icon buttons went back to labeled "View"/"Delete" text buttons (compact size, but icons alone weren't clear enough). "Update Carrie's answers" gained its own `ConfirmDialog` explaining what the action actually does (rebuilds the search index from the current profile/documents; doesn't change the profile) before running it — previously it ran immediately with no explanation. `ConfirmDialog` gained a `confirmVariant` prop (`"danger"` default for deletes, `"primary"` for this non-destructive case) since the confirm button shouldn't look destructive for a safe action.
 - Verified `npm run lint` and `npm run build`, plus real-browser verification via Playwright (fetched temporarily through `npx`, not added as a dependency) driving `/care/[shareToken]` headlessly: confirmed the Gender field renders, the pending "Carrie is thinking…" bubble and disabled input/button appear mid-request, source-citation tags render under answers, and the message list scrolls in a bounded auto-scrolling container across multiple exchanges, with zero console errors. Owner-authenticated pages (inline Documents section, header hierarchy, confirm dialogs, chat-history drill-down, the two follow-up fixes) needed manual verification since login can't be scripted (magic-link, no bypass).
 
+## Demo data
+
+- Seeded a demo owner (`demo@carrienotes.app`) with two fully filled-out pets (Biscuit, a Golden Retriever; Luna, a Domestic Shorthair cat) via the service-role key and a Python script — profile, meals, medical, behavior, emergency, vaccinations, and manually-triggered `doc_chunks` indexing (replicating `lib/indexing.ts`'s section-building and embedding, since seeding went straight to the database rather than through the app's write paths) so AI chat works immediately for both.
+- Discovered while spot-checking: `get_shared_pet` (Step 4) hardcodes its returned field list and was never updated when Step 8 added `pets.gender` — caregivers could never see gender even though it saved correctly. Fixed in `supabase/sql/009_add_gender_to_share_function.sql` (`create or replace`, same function, gender added to the `jsonb_build_object`).
+
 ## Remaining steps
 
 9. Vercel deployment
