@@ -4,6 +4,8 @@ Carrie Notes is an MVP for **Care Handover AI**: pet owners create structured ca
 
 **Live demo:** [carrie-notes.vercel.app](https://carrie-notes.vercel.app)
 
+![Dashboard showing several pet care profiles](docs/dashboard-screenshot.png)
+
 ## Stack
 
 - Next.js 14, App Router, TypeScript, Tailwind CSS
