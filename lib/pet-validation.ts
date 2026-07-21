@@ -7,6 +7,7 @@ export const petFormSchema = z.object({
   nickname: text,
   age: text,
   breed: text,
+  gender: text,
   blood_type: text,
   routine: z.object({ walks: text, sleep: text }).default({ walks: "", sleep: "" }),
   meals: z.array(z.object({ time: text, food: text, portion: text, notes: text })).default([]),

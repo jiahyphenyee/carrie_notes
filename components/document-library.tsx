@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { DOCUMENT_TYPES, documentTypeLabel } from "@/lib/document-types";
 
 type Document = {
@@ -20,7 +21,7 @@ export function DocumentLibrary({ petId }: Props) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   async function load() {
     const response = await fetch(`/api/pets/${petId}/documents`);
@@ -60,7 +61,6 @@ export function DocumentLibrary({ petId }: Props) {
       if (!response.ok) throw new Error(data.error);
       await load();
       setSuccess(`"${file.name}" uploaded as ${documentTypeLabel(documentType)}.`);
-      if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not upload this file.");
     } finally {
@@ -68,31 +68,77 @@ export function DocumentLibrary({ petId }: Props) {
     }
   }
 
-  async function remove(documentId: string) {
-    if (!window.confirm("Delete this document? This cannot be undone.")) return;
+  async function confirmRemove() {
+    if (!pendingDeleteId) return;
+    const documentId = pendingDeleteId;
+    setPendingDeleteId(null);
     const response = await fetch(`/api/pets/${petId}/documents/${documentId}`, { method: "DELETE" });
-    if (response.ok) {
-      setDocuments((current) => current?.filter((document) => document.id !== documentId) || null);
-      setSuccess("");
-    } else setError("Could not delete this document.");
+    if (response.ok) setDocuments((current) => current?.filter((document) => document.id !== documentId) || null);
+    else setError("Could not delete this document.");
   }
 
   return (
-    <>
-      <Button type="button" variant="secondary" onClick={openModal}>Upload any document</Button>
+    <section className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h2 className="font-serif text-xl font-semibold text-stone-900">Documents</h2>
+          <p className="mt-1 text-sm leading-6 text-stone-600">Vet records, care instructions, or other files kept with this profile.</p>
+        </div>
+        <button
+          type="button"
+          aria-label="Upload a document"
+          onClick={openModal}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-700 text-lg font-semibold text-white transition hover:bg-teal-800"
+        >
+          +
+        </button>
+      </div>
+
+      <div className="space-y-1.5">
+        {documents === null && <p className="text-sm text-stone-500">Loading documents…</p>}
+        {documents?.length === 0 && <p className="text-sm text-stone-500">No documents added yet.</p>}
+        {documents?.map((document) => (
+          <div key={document.id} className="flex items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-sm hover:bg-stone-50">
+            <div className="min-w-0">
+              <p className="truncate font-medium text-stone-900">{document.file_name}</p>
+              <p className="text-xs text-stone-500">
+                {[documentTypeLabel(document.document_type), new Date(document.created_at).toLocaleDateString()].filter(Boolean).join(" • ")}
+              </p>
+            </div>
+            <div className="flex shrink-0 gap-1.5">
+              <a href={`/api/pets/${petId}/documents/${document.id}/download`} target="_blank" rel="noreferrer">
+                <Button type="button" variant="secondary" className="min-h-8 px-3 text-xs">View</Button>
+              </a>
+              <Button type="button" variant="danger" className="min-h-8 px-3 text-xs" onClick={() => setPendingDeleteId(document.id)}>
+                Delete
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {error && !modalOpen && <p role="alert" className="mt-3 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</p>}
+
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        title="Delete this document?"
+        description="This cannot be undone. The file and its search data will be removed."
+        onConfirm={confirmRemove}
+        onCancel={() => setPendingDeleteId(null)}
+      />
 
       {modalOpen && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Documents"
+          aria-label="Upload a document"
           className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/50 p-4"
           onClick={(event) => { if (event.target === event.currentTarget) closeModal(); }}
         >
-          <div className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <h3 className="font-serif text-xl font-semibold text-stone-900">Documents</h3>
+                <h3 className="font-serif text-xl font-semibold text-stone-900">Upload a document</h3>
                 <p className="mt-1 text-sm leading-6 text-stone-600">
                   Vet records, care instructions, insurance papers, or anything else worth keeping with this profile.
                 </p>
@@ -121,7 +167,6 @@ export function DocumentLibrary({ petId }: Props) {
             <label className="mt-4 block">
               <span className="mb-1.5 block text-sm font-semibold text-stone-800">File</span>
               <input
-                ref={fileInputRef}
                 aria-label="Upload a document"
                 type="file"
                 accept=".pdf,.txt,.md,.csv,.doc,.docx,image/*"
@@ -136,34 +181,12 @@ export function DocumentLibrary({ petId }: Props) {
             {success && <p role="status" className="mt-3 rounded-xl bg-teal-50 px-4 py-3 text-sm text-teal-800">✓ {success}</p>}
             {error && <p role="alert" className="mt-3 rounded-xl bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</p>}
 
-            <div className="mt-5 space-y-2 border-t border-stone-200 pt-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
-                {documents === null ? "Loading…" : documents.length ? `${documents.length} file${documents.length === 1 ? "" : "s"} attached` : "No documents yet"}
-              </p>
-              {documents?.map((document) => (
-                <div key={document.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-stone-50 p-3 text-sm">
-                  <div>
-                    <p className="font-medium text-stone-900">{document.file_name}</p>
-                    <p className="text-stone-500">
-                      {[documentTypeLabel(document.document_type), new Date(document.created_at).toLocaleDateString()].filter(Boolean).join(" • ")}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <a href={`/api/pets/${petId}/documents/${document.id}/download`} target="_blank" rel="noreferrer">
-                      <Button type="button" variant="secondary">View</Button>
-                    </a>
-                    <Button type="button" variant="ghost" onClick={() => remove(document.id)}>Delete</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
             <div className="mt-5 flex justify-end">
               <Button type="button" variant="ghost" onClick={closeModal} disabled={uploading}>Close</Button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </section>
   );
 }

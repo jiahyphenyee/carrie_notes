@@ -22,6 +22,7 @@ export type PetFormValues = {
   nickname: string;
   age: string;
   breed: string;
+  gender: string;
   blood_type: string;
   routine: { walks: string; sleep: string };
   meals: Meal[];
@@ -48,6 +49,7 @@ export const emptyPet: PetFormValues = {
   nickname: "",
   age: "",
   breed: "",
+  gender: "",
   blood_type: "",
   routine: { walks: "", sleep: "" },
   meals: [],
@@ -87,6 +89,7 @@ export function mapPetRecord(record: Record<string, unknown>): PetRecord {
     nickname: (record.nickname as string) || "",
     age: (record.age as string) || "",
     breed: (record.breed as string) || "",
+    gender: (record.gender as string) || "",
     blood_type: (record.blood_type as string) || "",
     photo_url: (record.photo_url as string | null) || null,
     created_at: record.created_at as string | undefined,

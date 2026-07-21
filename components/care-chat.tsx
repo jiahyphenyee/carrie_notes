@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui";
 
 type Source = { source_type: string; source_label: string };
@@ -19,10 +19,15 @@ export function CareChat({ shareToken, petName }: Props) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setSessionId(window.localStorage.getItem(sessionStorageKey(shareToken)));
   }, [shareToken]);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, sending]);
 
   async function send() {
     const asked = question.trim();
@@ -71,8 +76,8 @@ export function CareChat({ shareToken, petName }: Props) {
         />
       )}
 
-      {messages.length > 0 && (
-        <div className="mb-4 space-y-3">
+      {(messages.length > 0 || sending) && (
+        <div ref={scrollRef} className="mb-4 max-h-96 space-y-3 overflow-y-auto pr-1">
           {messages.map((message, index) => (
             <div key={index} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
@@ -96,6 +101,13 @@ export function CareChat({ shareToken, petName }: Props) {
               </div>
             </div>
           ))}
+          {sending && (
+            <div className="flex justify-start">
+              <div className="max-w-[85%] rounded-xl bg-stone-50 px-4 py-2.5 text-sm italic leading-6 text-stone-500">
+                Carrie is thinking…
+              </div>
+            </div>
+          )}
         </div>
       )}
 

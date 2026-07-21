@@ -24,6 +24,7 @@ export function PetProfileView({ pet }: Props) {
             ["Nickname", pet.nickname],
             ["Age", pet.age],
             ["Breed", pet.breed],
+            ["Gender", pet.gender],
             ["Blood type", pet.blood_type],
           ].map(([label, value]) => (
             <div key={label} className="rounded-xl bg-stone-50 p-3">

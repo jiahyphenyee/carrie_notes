@@ -66,8 +66,19 @@
 - Added owner-authenticated `GET /api/pets/[id]/chat-sessions` and `components/chat-history.tsx` (same button-opens-modal pattern as `document-library.tsx`) so owners can review past caregiver conversations, wired into the pet detail page's header actions.
 - Verified `npm run lint` and `npm run build`.
 
+## Step 8 — UX polish ✓
+
+- Added a `gender` field to Basic information (`supabase/sql/008_add_gender_column.sql`, a plain `alter table` since `pets` had no such column): a small select ("Not specified"/Female/Male/Unknown) in `pet-form.tsx`, wired through `lib/pets.ts`, `lib/pet-validation.ts`, both pet API routes, and displayed in `pet-profile-view.tsx`. Deliberately left out of embeddings, consistent with the rest of Basic information.
+- Reviewed every page/component for rough edges left behind by incremental feature work, then refined further against feedback: Documents went back to being a visible inline `Section` (compact rows, a small "+" icon button opens the same upload modal, small view/delete icon buttons) instead of hidden behind one button; the caregiver-questions modal was restructured from one long message dump into a session-card list that drills into a single conversation, so it won't become unusable as real history accumulates.
+- Added `components/confirm-dialog.tsx`, a reusable confirmation overlay, replacing `window.confirm()` for pet delete and document delete; both now use `Button`'s existing (previously unused) `danger` variant instead of `ghost`, so destructive actions actually look destructive.
+- Rebalanced the pet detail page header into two tiers: "Edit profile"/"Delete" stay prominent; "Caregiver questions" and "Update Carrie's answers" moved to a lighter secondary row.
+- `components/care-chat.tsx`: bounded, auto-scrolling message container and a "Carrie is thinking…" pending bubble while waiting on a response.
+- Standardized "Loading…" copy/punctuation across `dashboard/page.tsx`, the pet detail page, the edit page, and `/care/[shareToken]`.
+- Flagged but did not touch: `app/api/pets/[id]/vaccinations/route.ts` and `.../[vaccinationId]/route.ts` appear to be dead code (`pet-form.tsx` saves vaccinations only through the bulk profile PATCH) — left for the owner to confirm before removing.
+- Follow-up feedback after visual verification: Documents' view/delete icon buttons went back to labeled "View"/"Delete" text buttons (compact size, but icons alone weren't clear enough). "Update Carrie's answers" gained its own `ConfirmDialog` explaining what the action actually does (rebuilds the search index from the current profile/documents; doesn't change the profile) before running it — previously it ran immediately with no explanation. `ConfirmDialog` gained a `confirmVariant` prop (`"danger"` default for deletes, `"primary"` for this non-destructive case) since the confirm button shouldn't look destructive for a safe action.
+- Verified `npm run lint` and `npm run build`, plus real-browser verification via Playwright (fetched temporarily through `npx`, not added as a dependency) driving `/care/[shareToken]` headlessly: confirmed the Gender field renders, the pending "Carrie is thinking…" bubble and disabled input/button appear mid-request, source-citation tags render under answers, and the message list scrolls in a bounded auto-scrolling container across multiple exchanges, with zero console errors. Owner-authenticated pages (inline Documents section, header hierarchy, confirm dialogs, chat-history drill-down, the two follow-up fixes) needed manual verification since login can't be scripted (magic-link, no bypass).
+
 ## Remaining steps
 
-8. UX polish
 9. Vercel deployment
 10. Demo preparation

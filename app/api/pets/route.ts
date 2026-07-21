@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       nickname: values.nickname || null,
       age: values.age || null,
       breed: values.breed || null,
+      gender: values.gender || null,
       blood_type: values.blood_type || null,
     })
     .select("id")

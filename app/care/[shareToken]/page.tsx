@@ -37,7 +37,7 @@ export default function CareSharePage() {
   if (!pet) {
     return (
       <main className="mx-auto max-w-4xl px-5 py-10 text-stone-600">
-        Loading profile...
+        Loading profile…
       </main>
     );
   }

@@ -1,6 +1,6 @@
 # Finalized Supabase Schema
 
-The database schema was supplied and applied by the project owner in Step 2. Application code must use these table names and relationships.
+The database schema was supplied and applied by the project owner in Step 2. Application code must use these table names and relationships. One addition since: Step 8 added a `pets.gender` text column (`supabase/sql/008_add_gender_column.sql`), covered by the existing owner-scoped `pets` policy.
 
 ## Extensions and storage
 

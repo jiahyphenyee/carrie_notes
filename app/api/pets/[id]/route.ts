@@ -39,6 +39,7 @@ export async function PATCH(request: Request, { params }: Context) {
       nickname: values.nickname || null,
       age: values.age || null,
       breed: values.breed || null,
+      gender: values.gender || null,
       blood_type: values.blood_type || null,
       updated_at: new Date().toISOString(),
     })
